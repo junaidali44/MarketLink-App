@@ -45,6 +45,15 @@ app.use('/api/reviews', reviewRoutes);
 app.use('/api/ai', aiRoutes);
 app.use('/api/upload', uploadRoutes);
 
+app.get('/',(req,res)=>{
+  res.status(200).json({
+    success:true,
+    message:"Welcome to MarketLink API",
+    endpoints:{
+      
+    }
+  })
+})
 app.use((_req, res) =>
   res.status(404).json({ success: false, error: 'Route not found' })
 );
