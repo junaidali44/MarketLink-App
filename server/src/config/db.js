@@ -10,8 +10,4 @@ export default async function connectDB() {
     console.error('✗ MongoDB connection failed:', err.message);
     process.exit(1);
   }
-
-  mongoose.connection.on('disconnected', () => {
-    console.warn('MongoDB disconnected');
-  });
 }

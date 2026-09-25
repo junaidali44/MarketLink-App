@@ -28,14 +28,3 @@ export const requireRole = (...roles) => (req, res, next) => {
     return fail(res, 'Forbidden', 403);
   next();
 };
-
-export const optionalAuth = async (req, _res, next) => {
-  try {
-    const token = extractToken(req);
-    if (token) {
-      const decoded = verifyToken(token);
-      req.user = await User.findById(decoded.id).select('-passwordHash');
-    }
-  } catch { /* silent */ }
-  next();
-};

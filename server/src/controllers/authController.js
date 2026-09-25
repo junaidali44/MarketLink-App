@@ -14,9 +14,7 @@ export const register = asyncHandler(async (req, res) => {
 
   const passwordHash = await User.hashPassword(password);
   const user = await User.create({
-    name, email, passwordHash, phone,
-    address: address || '',
-    role: 'customer',
+    name, email, passwordHash, phone, address: address || '', role: 'customer',
   });
 
   const token = signToken(user._id);
@@ -38,10 +36,8 @@ export const registerFarmer = asyncHandler(async (req, res) => {
 
   const passwordHash = await User.hashPassword(password);
   const user = await User.create({
-    name, email, passwordHash, phone,
-    address: address || '',
-    role: 'farmer',
-    isApproved: false,
+    name, email, passwordHash, phone, address: address || '',
+    role: 'farmer', isApproved: false,
   });
 
   await FarmerProfile.create({
@@ -51,11 +47,7 @@ export const registerFarmer = asyncHandler(async (req, res) => {
     operatingDays: operatingDays || [],
     pickupWindows: pickupWindows || [],
     location: location
-      ? {
-          ...location,
-          type: 'Point',
-          coordinates: [location.lng || 0, location.lat || 0],
-        }
+      ? { ...location, type: 'Point', coordinates: [location.lng || 0, location.lat || 0] }
       : { address: '', lat: 0, lng: 0, type: 'Point', coordinates: [0, 0] },
   });
 
@@ -85,8 +77,30 @@ export const login = asyncHandler(async (req, res) => {
   return ok(res, { token, user: user.toSafeObject() }, 'Logged in');
 });
 
-export const me = asyncHandler(async (req, res) => ok(res, req.user.toSafeObject()));
+export const me = asyncHandler(async (req, res) =>
+  ok(res, req.user.toSafeObject())
+);
 
 export const logout = asyncHandler(async (req, res) =>
   ok(res, null, 'Logged out')
 );
+
+export const bootstrapAdmin = asyncHandler(async (req, res) => {
+  if (process.env.NODE_ENV === 'production')
+    return fail(res, 'Not available in production', 403);
+
+  const existing = await User.findOne({ role: 'admin' });
+  if (existing) return fail(res, 'Admin already exists', 409);
+
+  const { name, email, password, phone } = req.body;
+  if (!name || !email || !password || !phone)
+    return fail(res, 'name, email, password, phone required');
+
+  const passwordHash = await User.hashPassword(password);
+  const admin = await User.create({
+    name, email, passwordHash, phone,
+    role: 'admin', isApproved: true,
+  });
+
+  return ok(res, { user: admin.toSafeObject() }, 'Admin created', 201);
+});
